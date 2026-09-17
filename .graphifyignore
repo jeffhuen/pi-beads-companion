@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.beads/
+.git/
+graphify-out/
+*.tgz
+package-lock.json

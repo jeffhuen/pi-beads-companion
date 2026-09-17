@@ -5,3 +5,13 @@
 .beads-credential-key
 .beads/proxieddb/
 *.gate.lock*
+
+# Local dependencies, generated output, and credentials
+node_modules/
+dist/
+*.tgz
+.env
+.env.*
+!.env.example
+graphify-out/
+.codebase-memory/
