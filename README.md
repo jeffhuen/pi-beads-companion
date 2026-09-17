@@ -1,16 +1,67 @@
 # pi-beads-companion
 
-A native Pi and OMP extension for Beads workflow context, issue selection, and explicit recovery checkpoints. Beads owns durable outcomes, dependencies, claims, and recovery checkpoints. Native host plans, todos, memory, and subagents remain responsible for execution.
+A native Pi and OMP extension that gives Beads and the harness one consistent workflow. **Beads keeps the durable work record. The harness runs the work.**
 
-## Our view: Beads and the harness coexist
+## Why this companion exists
 
-[Beads' workflow diagram](https://github.com/gastownhall/beads#readme) follows work from creation through dependencies, claim, and closure. We keep that durable workflow and give live execution to the agent's native harness. User authority applies throughout.
+[Beads](https://github.com/gastownhall/beads#readme) gives coding agents a persistent record of issues, dependencies, ownership, and project knowledge. A bead is an issue. It can hold the plan and progress another session needs to continue the work.
+
+Pi and OMP are agent harnesses: they run the agent and its tools. Their workflows can include plans, todos, subagents, session history, and memory. Beads' default instructions can conflict with those workflows. For example, Beads 1.3.0 generates these rules:
+
+> Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+>
+> Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+
+A harness that directs an agent to use native planning or memory now gives it conflicting instructions. The agent may follow one set and neglect the other. Adding more reminders does not resolve the conflict.
+
+This companion replaces those exclusive rules with a project policy. Beads keeps its issue workflow, dependencies, claims, memories, and closure through native `bd` commands. The harness keeps its execution tools.
+
+The extension supplies the policy and selected issue as context. It restores issue selection within native sessions and offers explicit recovery checkpoints. The policy lives in [PRIME.md](PRIME.md), which setup installs through Beads' native template override.
+
+The companion does not synchronize two task lists or enforce agent compliance.
+
+## The boundary: durable work and live execution
+
+Beads holds the outcome, acceptance criteria, dependencies, high-level plan, decisions, and recovery checkpoints. The harness holds the detailed steps and agent assignments.
+
+For a larger run, the bead needs enough of the plan for another session to continue. The working todo list stays in the harness. Significant plan changes belong in Beads, but individual todo transitions do not.
+
+Native sessions and memory can also persist. Beads serves as the shared work record across sessions and agents. The harness manages the current run. `bd remember` stores project knowledge alongside the work record without replacing the harness's own memory.
+
+### When a bead or worktree helps
+
+A small, bounded edit or one-off investigation can run directly, without a new bead or worktree, unless the project requires them. File count alone does not decide this.
+
+A bead helps when work spans sessions, has dependencies, or needs a recoverable plan or handoff. Larger multi-file agent runs usually benefit from that record. The issue that tracks the current outcome is the **governing bead**. A separate bead is useful when part of the work needs its own outcome, dependency, or owner.
+
+Worktrees serve a different purpose: they isolate branches and concurrent writers. A bead does not require a worktree. Direct work still has to respect other writers and the project's checkout rules.
+
+### Completion is one procedure
+
+A native todo records an execution step. A bead records whether the agreed outcome was delivered. Finishing the steps is not proof that the outcome meets its acceptance criteria.
+
+The **coordinator** is the agent responsible for the whole outcome. Other agents are **helpers**. For work tracked in a bead, the coordinator follows one procedure:
+
+1. Read the governing bead. Confirm ownership and acceptance criteria, then record the high-level plan.
+2. Execute with native plans and subagents. Record verified progress, blockers, and significant plan changes in Beads.
+3. Verify the integrated result against the bead's acceptance criteria. Check for remaining work and running agents that can still change the result.
+4. Record the final evidence. Close the bead through `bd` before reporting it complete.
+
+If acceptance is incomplete, the bead stays open with a checkpoint. If closure lacks authorization or fails, the coordinator reports that state.
+
+An assignment to complete a bead includes routine status updates and verified closure, unless user or repository instructions reserve those actions. Finishing the native plan does not create another approval step. Selecting an issue alone does not grant that authority.
+
+Helpers report results to the coordinator. They do not close the governing bead when their own todo list is finished. The extension does not auto-close issues: task counters and session events cannot prove acceptance.
+
+Git commits, pushes, Dolt synchronization, and publication have their own authorization requirements. Closing a bead does not authorize them.
+
+### How the pieces fit
 
 ```mermaid
 flowchart LR
-    beads[("Beads<br/>durable outcomes, dependencies<br/>claims and recovery checkpoints")]
+    beads[("Beads<br/>outcomes, acceptance and plans<br/>dependencies and recovery checkpoints")]
     companion["pi-beads-companion<br/>project policy and selected issue<br/>bounded recovery context"]
-    coordinator["Coordinator<br/>owns bead updates<br/>integration and cleanup"]
+    coordinator["Coordinator<br/>owns bead updates<br/>integration, verification and closure"]
     harness["Native Pi or OMP<br/>plans, todos, memory<br/>tools and subagents"]
     herdr["Official Herdr integration<br/>optional full CLI sessions<br/>terminals and worktrees"]
 
@@ -18,74 +69,75 @@ flowchart LR
     companion -->|"context for work and resume"| coordinator
     coordinator -->|"plan and delegate"| harness
     harness -->|"results, blockers, live writers"| coordinator
-    coordinator -->|"outline + material checkpoints<br/>authorized claims and verified closure"| beads
+    coordinator -->|"plan + material checkpoints<br/>final evidence and verified closure"| beads
     coordinator -.->|"when a separate CLI session helps"| herdr
     herdr -.->|"worker results and lifecycle state"| coordinator
 ```
 
-The coordinator checkpoints meaningful progress in Beads instead of copying every todo transition. Helpers report to the coordinator. Native compaction and memory stay under the harness's control. Herdr remains a separate integration, not a worker manager hidden inside this package.
+Native compaction and memory stay under the harness's control. Herdr remains a separate integration for cases that need full CLI sessions or worktree management.
 
-The full replacement workflow is [PRIME.md](PRIME.md). It is the canonical policy shipped in the package and copied by setup, not a second hand-maintained example.
+## Install the extension
 
-| Conflicting or inherited guidance | This companion's policy |
-| --- | --- |
-| Put every task or todo in Beads; prohibit native planning tools. | Beads records durable outcomes. Native plans and todos drive execution. |
-| Prohibit native memory because Beads has `bd remember`. | Beads project memory and native harness memory can coexist without duplicate injection. |
-| Let every helper claim or close the governing bead. | One coordinator owns updates unless ownership transfers explicitly. |
-| Treat session completion as permission to commit, push, sync, or close work. | Each action needs its own authority. Closure also needs verification. |
-| Add another compaction agent or Herdr worker protocol. | Use native compaction and the official Herdr integration. |
-
-These are the policy choices of this companion. They do not claim that every Beads version or profile imposes every conflicting rule above.
-
-## Local installation
-
-Node.js 22.19.0 or later and an existing `bd` installation are required. OMP also requires its native Bun runtime. Build this checkout explicitly:
+Install Node.js 22.19.0 or later and `bd` first. OMP also requires Bun. Build this checkout:
 
 ```sh
 npm install
 npm run build
 ```
 
-From the project where you want the extension, choose the native entrypoint for your host:
+From the target project, run the command for your host:
 
 ```sh
 omp -e /absolute/path/to/pi-beads-companion/dist/omp.js
 pi -e /absolute/path/to/pi-beads-companion/dist/pi.js
 ```
 
-The package root declares `omp.extensions` and `pi.extensions` separately. A project-local package installation uses the same checkout, not the other host's entrypoint:
+Alternatively, register this checkout as a project-local package. The package declares separate native entrypoints for OMP and Pi. Choose one command:
 
 ```sh
 omp install -l /absolute/path/to/pi-beads-companion
 pi install -l /absolute/path/to/pi-beads-companion
 ```
 
-Use either package installation or `-e`, not both. Reload or restart the host after registration. Keep the official Herdr integration installed separately. This package neither installs nor replaces it.
+Use package registration or `-e`, not both. Reload or restart the host after registration. If you use Herdr, install its official integration separately.
 
-## Explicit project adoption
+## Adopt the workflow in a project
 
-Loading the extension does not initialize or adopt a project. If Beads is not initialized, run this command yourself from the project root:
+Loading the extension does not initialize Beads or change project instructions. For a new Beads project, run this command from the project root:
 
 ```sh
-bd init --skip-agents --skip-hooks --non-interactive
+bd init --skip-agents --non-interactive
 ```
 
-Setup requires the canonical project root with a local `.beads/metadata.json`. It does not search parent directories or follow worktree redirects. Preview the complete proposed policy files before applying them:
+`--skip-agents` leaves agent instruction setup to this companion. In Beads 1.3.0, it also skips automatic Claude, Codex, and Cursor setup. It does not disable the database, dependencies, claims, memories, or native `bd` commands.
+
+This command keeps Beads' Git hooks. Add `--skip-hooks` only if you choose to omit those hooks.
+
+Do not reinitialize an existing Beads project. Review its generated instructions using the procedure below. Other harness integrations need their own review.
+
+Setup requires the real project root and a local `.beads/metadata.json`. It does not search parent directories or follow worktree redirects. Preview the proposed files, then apply them:
 
 ```sh
 node /absolute/path/to/pi-beads-companion/dist/setup.js --cwd /absolute/project/path
 node /absolute/path/to/pi-beads-companion/dist/setup.js --cwd /absolute/project/path --apply
 ```
 
-`--help` describes the CLI. Omitting `--apply` is always a dry-run. Setup changes `.beads/PRIME.md` and a bounded `PI-BEADS-COMPANION` block in root `AGENTS.md`, and removes a recognized stock `BEADS INTEGRATION` block. It preserves unrelated bytes. Repeating an unchanged apply does not rewrite either file.
+Omit `--apply` for a dry-run. Use `--help` for CLI options. Setup changes two files:
 
-Setup does not run `bd`, install packages, change host settings, initialize repositories, commit, push, or contact remotes. The setup check recognizes initialization metadata, not database health. The extension activates only when the effective clone-local or resolved-workspace PRIME file contains its ownership marker. An unowned clone-local override takes precedence and prevents activation.
+- `.beads/PRIME.md`: the workflow that native `bd prime` reads.
+- `AGENTS.md`: a marked `PI-BEADS-COMPANION` block. Setup also removes a recognized stock `BEADS INTEGRATION` block.
 
-The companion fails closed on policy read errors rather than adopting a broader fallback, even when native Beads could use that fallback. Use `/beads status` to inspect the error.
+Setup preserves unrelated content. Repeating an unchanged apply does not rewrite either file.
+
+Setup does not run `bd`, install packages, change host settings, initialize repositories, commit, push, or contact remotes. It checks initialization metadata, not database health.
+
+The extension activates only when the effective project PRIME file contains the companion's ownership marker. A local override without that marker takes precedence over a marked workspace policy and prevents activation.
+
+If the companion cannot read a policy file, it reports an error rather than using a broader fallback. Native Beads may behave differently. Use `/beads status` to inspect the error.
 
 ### Override the stock Beads workflow
 
-Beads 1.3.0 natively reads `.beads/PRIME.md` in the local clone or resolved workspace instead of its built-in workflow text. Persistent memories still follow that text. No Beads binary patch or global configuration change is needed.
+Beads 1.3.0 reads a custom `.beads/PRIME.md` instead of its built-in workflow text. It still appends persistent memories. No Beads binary patch or global configuration change is needed.
 
 1. Read the bundled [PRIME.md](PRIME.md).
 2. Stop other writers in the target checkout.
@@ -101,13 +153,13 @@ Beads 1.3.0 natively reads `.beads/PRIME.md` in the local clone or resolved work
 
 8. Restart or reload the host, then run `/beads refresh`.
 
-The output must contain `# Beads companion workflow`. Native memories can appear after the policy. `bd prime --export` deliberately ignores the override and prints the stock template, so do not use it to check whether the override is active.
+The output must contain `# Beads companion workflow`. Native memories can follow the policy. Do not check the override with `bd prime --export`: that command prints the stock template.
 
-Setup targets the owning checkout. For a worktree with `.beads/redirect`, inspect `bd where --json` and run setup in the owning checkout rather than copying policy into an unrelated directory. Reconcile any local PRIME override separately.
+For a worktree with `.beads/redirect`, run `bd where --json` to find the owning checkout. Run setup there. Review any local PRIME override separately.
 
-### Optional global native override
+### Set an optional global override
 
-Beads 1.3.0 also supports a global template. On Linux it is `${XDG_CONFIG_HOME:-$HOME/.config}/beads/PRIME.md`, normally `~/.config/beads/PRIME.md`. It is not `~/.beads/PRIME.md` or `/.beads/PRIME.md`.
+Beads 1.3.0 also supports a global template. On Linux, use `${XDG_CONFIG_HOME:-$HOME/.config}/beads/PRIME.md`, normally `~/.config/beads/PRIME.md`. Do not use `~/.beads/PRIME.md` or `/.beads/PRIME.md`.
 
 [Native resolution](https://github.com/gastownhall/beads/blob/v1.3.0/cmd/bd/prime.go) uses this precedence:
 
@@ -116,20 +168,24 @@ Beads 1.3.0 also supports a global template. On Linux it is `${XDG_CONFIG_HOME:-
 3. The global config template
 4. The built-in workflow
 
-A discoverable Beads workspace is still required. A project override wins over the global template. `bd prime --export` bypasses all custom templates.
+Beads still needs to find an initialized workspace. A project override wins over the global template. `bd prime --export` bypasses all custom templates.
 
-To opt into a global default, back up any existing global template first. Then, from this companion checkout, copy the canonical policy explicitly:
+Back up any existing global template. Then copy the canonical policy from this companion checkout:
 
 ```sh
 mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/beads"
 cp -i PRIME.md "${XDG_CONFIG_HOME:-$HOME/.config}/beads/PRIME.md"
 ```
 
-This manual copy affects native `bd prime` in Beads projects without a nearer override. It does not reconcile their `AGENTS.md`, remove old hooks, or adopt those projects into the companion. Run project setup for those changes. Setup never writes the global template. After changing it, verify the output from each relevant project rather than assuming the global file wins.
+The global copy affects `bd prime` only in Beads projects without a nearer override. It does not change instruction files, remove hooks, or activate the companion in those projects.
+
+Use project setup for the managed `AGENTS.md` block and local activation. Review other guidance manually. Setup never writes the global template. Check `bd prime --full` in each relevant project after changing the template.
 
 ### Update the policy
 
-Edit the repository-root `PRIME.md`, not compiled JavaScript or a generated project copy. Keep the first-line ownership marker unchanged. `src/setup.ts` reads this file directly and normalizes CRLF to LF. The package includes the file; extension loading does not read it.
+Edit the repository-root `PRIME.md`. Keep the first-line ownership marker unchanged. Do not edit compiled JavaScript or a generated project copy.
+
+The package includes this canonical file. `src/setup.ts` reads it and normalizes CRLF to LF. The extension does not read it during loading.
 
 After an edit, run:
 
@@ -139,13 +195,17 @@ npm test
 npm pack --dry-run
 ```
 
-For each adopted project, repeat the setup dry-run, review the proposed replacement, and apply it explicitly. Then inspect `bd prime --full` and reload or refresh the host. Updating this package does not silently update other projects.
+For each adopted project, preview and apply the update with setup. Inspect `bd prime --full`, then reload the host or run `/beads refresh`. A package update does not update other projects' policies.
 
-If a project needs additional unrelated rules, keep them outside the managed `AGENTS.md` block. Setup owns the entire installed `.beads/PRIME.md` and replaces local edits there on the next apply. For a project-specific workflow, maintain a dedicated checkout of this companion, edit its canonical `PRIME.md`, and apply setup from that checkout. Do not rely on edits to the generated project copy surviving an update.
+Keep unrelated project rules outside the managed `AGENTS.md` block. Setup replaces the entire installed `.beads/PRIME.md`, including local edits. For a project-specific policy, edit the canonical file in a dedicated checkout of this companion and run setup from there.
 
-After running `bd init`, `bd setup`, or upgrading Beads, repeat the dry-run and inspect the effective prime output. Those native commands can restore stock guidance in other instruction files or hooks. To remove the companion, preserve any project-specific guidance, unregister the extension, and explicitly remove its managed `AGENTS.md` block and owned `.beads/PRIME.md`. Native `bd prime` then uses the next applicable override, or its built-in workflow if none remains.
+After `bd init`, `bd setup`, or a Beads upgrade, repeat the dry-run and inspect `bd prime --full`. Native setup commands can restore stock guidance in other instruction files or hooks.
 
-## Commands
+### Remove the companion
+
+Preserve any project-specific guidance first. Unregister the extension, then remove its managed `AGENTS.md` block and owned `.beads/PRIME.md`. Native `bd prime` uses the next applicable override, or its built-in workflow if none remains.
+
+## Command reference
 
 Both hosts expose the same `/beads` command:
 
@@ -157,58 +217,89 @@ Both hosts expose the same `/beads` command:
 | `/beads refresh` | Invalidate cached context and reload Beads context. |
 | `/beads checkpoint TEXT` | Add one explicit comment to the selected issue. |
 
-Selection lives in native session entries and restores from the active session branch. It is bound to the canonical working directory and resolved Beads location. A cleared selection also persists. An unrelated session branch or checkout does not inherit an issue by accident.
+### Selection and session state
 
-Identity is path-based. If you replace or reinitialize a database at the same paths, clear and reselect the governing issue before checkpointing.
+Selection is stored in native session entries and restored from the active session branch. It is tied to the real working directory and resolved Beads location. Clearing the selection also persists. An unrelated session branch or checkout does not inherit the issue.
+
+Workspace identity uses paths, not a database fingerprint. If you replace or reinitialize a database at the same paths, clear and reselect the issue before adding a checkpoint.
 
 Persistence follows the host's session rules. In Pi, a new session is not written to disk until its first assistant response. Switching away before that response, or running with `--no-session`, does not create a durable selection. The extension does not force-save otherwise empty sessions.
 
-The extension caches bounded `bd prime` context and selected-issue details instead of probing every turn. Native session changes, post-compaction events, explicit refresh, and relevant commands invalidate that cache. Use `/beads refresh` after external Beads changes. Native compaction remains in control. This package has no pre-compaction agent or replacement summary protocol.
+### Context refresh and limits
 
-Before adoption, the extension still runs read-only `bd where` to locate the workspace, but injects no project context. Context failures produce warnings after adoption is resolved, or when a readable local-root policy marker proves adoption despite a failed first lookup. An unresolved parent or redirected workspace can remain silent on first failure; `/beads status` reports the error explicitly. Reads time out after 8 seconds and checkpoint writes after 15 seconds. A failed checkpoint is not retried automatically. If the result is ambiguous, inspect the issue before retrying.
+The extension caches `bd prime` output and selected-issue details instead of querying them every turn. Session changes, compaction, refresh, and relevant commands invalidate the cache. Run `/beads refresh` after external Beads changes. This package does not replace native compaction or run a pre-compaction agent.
 
-Prime output is capped at 16,000 characters. Issue fields have separate limits, and comments share a 3,000-character block labeled newest-first so old comments cannot displace acceptance criteria. Truncation is marked. Use native `bd show ID --include-comments` when full details are needed.
+Before adoption, the extension runs read-only `bd where` to locate the workspace but injects no project context. After it resolves adoption, context failures produce warnings. A readable policy marker at the project root also enables warnings if the first lookup fails.
 
-## Authority and checkpoints
+A failed first lookup can remain silent for a parent or redirected workspace. `/beads status` reports the error. Reads time out after 8 seconds; checkpoint writes time out after 15 seconds. The extension does not retry a failed checkpoint. If the write result is unclear, inspect the issue before retrying.
 
-The slash command is for an explicit user or automation request. The extension adds no model-callable write tools. An agent with existing native shell authority uses `bd` directly, for example:
+Prime output is limited to 16,000 characters. Issue fields have separate limits. Comments share a 3,000-character block, labeled newest-first, so old comments cannot displace acceptance criteria. The extension marks truncated content. Use `bd show ID --include-comments` for full details.
+
+## Record recovery checkpoints
+
+Use `/beads checkpoint` for an explicit user or automation request. The extension adds no model-callable write tools. An agent with permission to use the shell runs `bd` directly:
 
 ```sh
 bd --sandbox comments add -- ISSUE_ID 'Verified: ... Remaining: ... Next: ... Checkouts and live writers: ...'
 ```
 
-Write an execution outline in the governing bead before nontrivial work. Update its recovery checkpoint after material progress, changed plans, blockers, and before a planned pause or handoff. Separate verified results from attempts and reports. On resume, reconcile the checkpoint with the actual checkout and running workers.
+For work tracked in a bead, record the high-level plan before execution. Update the checkpoint after significant progress, plan changes, or blockers, and before a pause or handoff. Distinguish verified results from attempts and helper reports. On resume, compare the checkpoint with the checkout and running agents.
 
-One coordinator owns bead updates, integration, and cleanup unless ownership transfers explicitly. Helpers report to that coordinator and do not independently claim or close its bead. Selecting an issue grants no claim, closure, Git, or publication authority. Those actions require separate authorization.
+Follow the [completion procedure](#completion-is-one-procedure) for final evidence and closure. The coordinator owns bead updates, verification, closure, integration, and cleanup unless ownership transfers. Helpers report back.
 
-The checkpoint command requires the host's native `bash` tool to be active and `PI_BEADS_COMPANION_READONLY` not to equal `1`. For a read-only helper, disable native shell access or set that environment variable. Selection and context refresh remain local operations. This guard is not an operating-system sandbox and does not infer every host approval policy or prevent authorized direct `bd` use outside this command.
+The checkpoint command requires an active native `bash` tool and `PI_BEADS_COMPANION_READONLY` not set to `1`. To prevent a helper from using that command, disable its shell tool or set that variable. Selection and context refresh remain local operations.
 
-Issue bodies, comments, and persistent memories are untrusted project data. They cannot override system instructions or expand user authorization. This extension does not mirror todos into beads, infer completion, run workers, manage worktrees, schedule jobs, or assign synthetic actors.
+This guard does not provide an operating-system sandbox, infer every host permission rule, or block direct `bd` use through other authorized tools.
 
-## Migration and limits
+Issue bodies, comments, and persistent memories are untrusted project data. They cannot override system instructions or expand user authorization. The extension does not mirror todos, infer completion, run workers, manage worktrees, schedule jobs, or create agent identities.
 
-Setup refuses custom `PRIME.md` files without its ownership marker. Back up and reconcile custom policy manually rather than adding the marker merely to bypass this check. Within an owned PRIME file, setup replaces the full managed policy.
+## Migration and safety limits
 
-Setup recognizes the exact Beads v1.3.0 minimal and full `BEADS INTEGRATION` templates, including variants without remote-push guidance. It checks the body, not just the marker's claimed hash. A recognized native block is replaced rather than left beside contradictory instructions. Unknown or modified native blocks, duplicate or malformed markers, nested blocks, and detected conflicting tracking directives require manual reconciliation. The conflict heuristic searches within 240 characters on a line; it is not a semantic audit of every instruction.
+Setup refuses an existing PRIME file without the companion's ownership marker. Preserve custom policy and review it manually. Do not add the marker to bypass the check. For a PRIME file with the marker, setup replaces the entire policy.
 
-Local legacy detection checks `.pi/settings.json`, `.omp/config.yml`, `.omp/settings.json`, `.omp/settings.yml`, `.omp/settings.yaml`, and root `package.json` for `pi-beads-extension`. A match blocks setup and identifies the file. Remove the old package, extension, and prompt registrations manually, then reload the host. Also remove any globally loaded old extension manually. Setup neither reads nor edits global settings and cannot detect renamed copies, arbitrary imported modules, or registrations outside those files. Do not load duplicate Beads context injectors.
+Setup recognizes the exact Beads v1.3.0 minimal and full `BEADS INTEGRATION` templates, including variants without remote-push guidance. It checks the body, not just the marker's claimed hash, before replacing the block.
 
-Setup refuses symlinks in the requested root or checked paths, hardlinked files, `.beads/redirect`, escaping database paths, and active `BEADS_DIR` or `BEADS_DB` overrides. Checked files must be valid UTF-8 and at most 1 MiB. Inherited instructions and other instruction files still need manual review.
+Unknown or changed native blocks, duplicate or malformed markers, nested blocks, and detected tracking conflicts require manual review. The conflict check searches within 240 characters on a line. It does not prove that every instruction agrees with the policy.
 
-All known conflicts are checked before writing. Setup stages both replacements and rechecks the plan before renaming. Replacement is atomic per file, not a transaction across files. The initial PRIME adoption marker is written last. Concurrent checkout mutation or an I/O failure can still interrupt the two-file operation. Run setup with other writers stopped, inspect any reported partial replacement, and repeat the dry-run before retrying.
+Setup does not migrate `BEADS CODEX SETUP` or inspect an independent `CLAUDE.md`, generated skills, or Cursor rules. A default `bd init` can create these sources of instructions. Review them for exclusive tracking or memory rules. Preserve unrelated guidance and useful native hooks. Updating PRIME alone does not resolve every conflict.
 
-## Development checks
+Setup checks these local files for `pi-beads-extension`:
 
-The repository includes bounded `node:test` regressions for setup safety and controller behavior. These commands build and run the checks:
+- `.pi/settings.json`
+- `.omp/config.yml`
+- `.omp/settings.json`
+- `.omp/settings.yml`
+- `.omp/settings.yaml`
+- `package.json`
+
+A match blocks setup and identifies the file. Remove the old package, extension, and prompt registrations, then reload the host. Remove any global legacy registration too. Setup does not read or edit global settings. It cannot detect renamed copies, arbitrary imported modules, or registrations outside the listed files.
+
+Setup also refuses:
+
+- Symlinks in the requested root or checked paths.
+- Hardlinked files or `.beads/redirect`.
+- Database paths that escape the project.
+- Active `BEADS_DIR` or `BEADS_DB` overrides.
+- Files that exceed 1 MiB or are not valid UTF-8.
+
+Setup runs its checks before writing. It stages both replacements, repeats the checks, and replaces the files. Each replacement is atomic, but the two-file update is not. Setup writes the PRIME ownership marker last during initial adoption.
+
+Stop other writers before setup. Concurrent changes or an I/O failure can interrupt the update between files. If setup reports a partial update, inspect the files and repeat the dry-run before retrying.
+
+## Run development checks
+
+The repository uses `node:test` for setup safety and controller behavior. Run:
 
 ```sh
 npm run check
 npm test
 ```
 
-Verified on Linux with Node.js 24.21.0, Beads 1.3.0, Pi 0.85.1, and OMP 18.2.3 and 18.2.4. The checks include 27 regression cases, real CLI session recovery and checkpoint writes, native prompt preparation across repeated turns, persistent memory injection, and project, redirected-workspace, and global override precedence. Provider-request checks use an isolated localhost fixture, not a paid model.
+The implementation has been verified on Linux with Node.js 24.21.0, Beads 1.3.0, Pi 0.85.1, and OMP 18.2.3 and 18.2.4.
 
-Independent correctness and security reviews completed. Their findings were fixed or documented, including context-budget allocation, handler timeouts, setup regex bounds, clone-local override precedence, and native session-persistence limits.
+The suite contains 27 regression cases. Separate integration checks covered real CLI session recovery, checkpoint writes, repeated-turn prompts, persistent memory injection, and project, redirected-workspace, and global override precedence. Provider-request checks used a local HTTP fixture, not a paid model.
+
+Independent correctness and security reviews covered the original implementation. Findings were fixed or documented, including context limits, timeouts, setup regex bounds, override precedence, and session-persistence limits.
 
 ## Attribution
 

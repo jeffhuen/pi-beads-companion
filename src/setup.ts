@@ -110,7 +110,7 @@ async function preflight(root: string): Promise<{ changes: Change[]; warnings: s
   }
   await safePath(root, join(root, ".beads"));
   const beads = await stat(join(root, ".beads"));
-  if (!beads?.isDirectory()) throw new Error("No initialized local .beads directory. Initialize explicitly with bd init --skip-agents --skip-hooks --non-interactive, then retry.");
+  if (!beads?.isDirectory()) throw new Error("No initialized local .beads directory. Initialize explicitly with bd init --skip-agents --non-interactive, then retry.");
   if (await stat(join(root, ".beads", "redirect"))) throw new Error("Refusing .beads/redirect; run setup explicitly in the owning checkout.");
   const metadataFile = await snapshot(root, join(root, ".beads", "metadata.json"));
   if (!metadataFile) throw new Error("Missing .beads/metadata.json; initialize or repair Beads explicitly before setup.");

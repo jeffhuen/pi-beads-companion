@@ -23,5 +23,5 @@ Do not push, publish, or install globally without authorization.
 <!-- BEGIN PI-BEADS-COMPANION -->
 ## Beads companion
 
-Use native harness todos and subagents for execution. Beads holds durable outcomes and compact recovery checkpoints, not every execution step. Read the project workflow with `bd prime`. One coordinator owns status updates unless ownership transfers explicitly. Helpers report back; lifecycle events do not close issues. Keep official Herdr integrations separate.
+Use native harness plans, todos, memory, and subagents for execution. Beads holds durable outcomes, acceptance criteria, high-level plans, and recovery checkpoints, not every execution step. Small bounded work needs no new bead unless project rules require one. Choose worktrees separately for writer or branch isolation. Read the project workflow with `bd prime`. One coordinator owns bead updates and closure unless ownership transfers explicitly. For assigned bead-scoped work, verify acceptance, record final evidence, and close the bead within your authority before reporting it complete. Completed todos alone do not prove acceptance. Helpers report back; lifecycle events do not close issues. Keep official Herdr integrations separate.
 <!-- END PI-BEADS-COMPANION -->

@@ -95,7 +95,7 @@ export async function resolveWorkspace(exec: Executor, cwd: string): Promise<Wor
   let location: unknown;
   try { location = json(await runBd(exec, canonicalCwd, ["where", "--json"])); }
   catch (error) {
-    throw new Error(`Cannot resolve a Beads workspace. Initialize the intended project explicitly with bd init --skip-agents --skip-hooks --non-interactive if needed. ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Cannot resolve a Beads workspace. Initialize the intended project explicitly with bd init --skip-agents --non-interactive if needed. ${error instanceof Error ? error.message : String(error)}`);
   }
   if (!object(location) || typeof location.path !== "string" || !isAbsolute(location.path) ||
       typeof location.database_path !== "string" || !isAbsolute(location.database_path)) {
