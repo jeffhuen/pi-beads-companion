@@ -98,6 +98,18 @@ Use package registration or `-e`, not both. Reload or restart the host after reg
 
 Loading the extension does not initialize Beads or change project instructions. Setup installs the policy through Beads' native `.beads/PRIME.md` override. Native `bd prime` still appends persistent memories.
 
+### Replace the Beads instructions; do not append to them
+
+**The companion policy replaces Beads' generated workflow instructions. It is not an addendum.** Do not leave the stock tracking and memory rules active beside it.
+
+Replace only the Beads workflow sections. Preserve unrelated project instructions and useful native hooks.
+
+- **`AGENTS.md`:** setup replaces a recognized stock `BEADS INTEGRATION` block with the companion block. Unknown or modified blocks require manual review.
+- **`CLAUDE.md`:** setup does not edit this file. Replace its stock Beads workflow section manually with the companion guidance. If it already imports `AGENTS.md` through `@AGENTS.md`, keep that import and remove the duplicate stock Beads section instead.
+- **Other generated guidance:** review Codex blocks, skills, and Cursor rules for the same conflicts. See [migration limits](#migration-and-safety-limits).
+
+A PRIME override changes what `bd prime` returns. It does not remove conflicting instructions from these files.
+
 ### Initialize Beads if needed
 
 For a new Beads project, run this command from the project root:
