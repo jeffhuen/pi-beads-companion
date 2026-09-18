@@ -60,7 +60,21 @@ The companion therefore does not auto-close issues. [PRIME.md](PRIME.md#native-c
 
 ## Install the extension
 
-Install Node.js 22.19.0 or later and `bd` first. OMP also requires Bun. Build this checkout:
+Install Node.js 22.19.0 or later and `bd` first. OMP also requires Bun.
+
+### Install from npm in Pi
+
+From the target project, install the extension:
+
+```sh
+pi install -l npm:pi-beads-companion
+```
+
+Omit `-l` for a user-wide installation. Restart Pi, then [adopt the workflow](#adopt-the-workflow-in-a-project) in each target project.
+
+### Install from a source checkout
+
+Build this checkout:
 
 ```sh
 npm install
@@ -74,12 +88,27 @@ omp -e /absolute/path/to/pi-beads-companion/dist/omp.js
 pi -e /absolute/path/to/pi-beads-companion/dist/pi.js
 ```
 
-Alternatively, register this checkout as a project-local package. The package declares separate native entrypoints for OMP and Pi. Choose one command:
+Keep these launch arguments with the native session reference when recording a
+recovery checkpoint. Restoring session history does not guarantee that a
+supervisor reapplies `-e`, tool restrictions, or process-local environment.
+Reapply and verify that launch configuration before resuming work; do not infer
+that the extension loaded from a model's response to a slash command.
+
+Pi can register this checkout in the target project's settings:
 
 ```sh
-omp install -l /absolute/path/to/pi-beads-companion
 pi install -l /absolute/path/to/pi-beads-companion
 ```
+
+OMP 18.2.3 through 18.2.5 link local checkouts into the user plugin directory,
+which affects all OMP projects. Only with global configuration authority, run:
+
+```sh
+omp install /absolute/path/to/pi-beads-companion
+```
+
+OMP does not support `install -l`. Use its `-e` entrypoint above for a
+session-local load. The package declares separate native entrypoints for OMP and Pi.
 
 Use package registration or `-e`, not both. Reload or restart the host after registration. If you use Herdr, install its official integration separately.
 
@@ -114,6 +143,8 @@ This command keeps Beads' Git hooks. Add `--skip-hooks` only if you choose to om
 ### Preview and apply the policy
 
 Setup requires the real project root and a local `.beads/metadata.json`. It does not search parent directories or follow worktree redirects. For a worktree with `.beads/redirect`, use `bd where --json` to find the owning checkout and run setup there.
+
+For an npm installation, replace `node /absolute/path/to/pi-beads-companion/dist/setup.js` in the commands below with `npx --package=pi-beads-companion@0.1.0 pi-beads-companion`. Use the version you installed. Both commands run the same setup tool.
 
 1. Read [PRIME.md](PRIME.md) and the [migration limits](#migration-and-safety-limits).
 2. Stop other writers in the target checkout.
@@ -322,9 +353,11 @@ npm run check
 npm test
 ```
 
-The implementation has been verified on Linux with Node.js 24.21.0, Beads 1.3.0, Pi 0.85.1, and OMP 18.2.3 and 18.2.4.
+The implementation has been verified on Linux with Node.js 24.21.0, Beads 1.3.0, Pi 0.85.1, and OMP 18.2.3, 18.2.4, and 18.2.5.
 
 The suite contains 27 regression cases. Separate integration checks covered real CLI session recovery, checkpoint writes, repeated-turn prompts, persistent memory injection, and project, redirected-workspace, and global override precedence. Provider-request checks used a local HTTP fixture, not a paid model.
+
+OMP 18.2.5 checks include typechecking both host adapters against the pinned SDKs and running the regression suite. A fresh session loaded the registered extension without `-e` and verified status, issue selection, context refresh, checkpoint rejection with Bash disabled, and clearing the selection.
 
 Independent correctness and security reviews covered the original implementation. Findings were fixed or documented, including context limits, timeouts, setup regex bounds, override precedence, and session-persistence limits.
 

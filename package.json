@@ -4,6 +4,19 @@
   "description": "Native Beads context and recovery checkpoints for Pi and OMP, alongside official Herdr integrations.",
   "type": "module",
   "license": "MIT",
+  "keywords": ["pi-package", "beads", "pi", "omp"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeffhuen/pi-beads-companion.git"
+  },
+  "homepage": "https://github.com/jeffhuen/pi-beads-companion#readme",
+  "bugs": {
+    "url": "https://github.com/jeffhuen/pi-beads-companion/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "engines": { "node": ">=22.19.0" },
   "files": ["dist", "PRIME.md", "README.md", "LICENSE"],
   "bin": { "pi-beads-companion": "./dist/setup.js" },
@@ -16,7 +29,7 @@
     "prepack": "npm run build"
   },
   "peerDependencies": {
-    "@oh-my-pi/pi-coding-agent": "18.2.3 || 18.2.4",
+    "@oh-my-pi/pi-coding-agent": "18.2.3 || 18.2.4 || 18.2.5",
     "@earendil-works/pi-coding-agent": "0.85.1"
   },
   "peerDependenciesMeta": {
@@ -24,7 +37,7 @@
     "@earendil-works/pi-coding-agent": { "optional": true }
   },
   "devDependencies": {
-    "@oh-my-pi/pi-coding-agent": "18.2.4",
+    "@oh-my-pi/pi-coding-agent": "18.2.5",
     "@earendil-works/pi-coding-agent": "0.85.1",
     "@types/node": "^22.15.18",
     "typescript": "~5.9.3"
