@@ -16,11 +16,13 @@ When the harness directs an agent to use those tools, the agent receives conflic
 
 This companion supplies a policy that separates the responsibilities. Beads keeps its issue workflow, dependencies, claims, memories, and closure through native `bd` commands. The harness keeps its execution tools.
 
-The extension loads that policy and the selected issue as context, restores issue selection within native sessions, and offers explicit recovery checkpoints. The policy lives in [PRIME.md](PRIME.md). The companion does not synchronize task lists or enforce agent compliance.
+The extension loads the policy and the selected issue as context, restores issue selection within native sessions, and offers explicit recovery checkpoints. [PRIME.md](PRIME.md) contains the agent instructions installed during project setup. The companion does not synchronize task lists or enforce agent compliance.
 
-## Three layers: from design to execution
+## Our workflow choices
 
-**Planning and design → Epics and beads → Agent execution**
+### Design, outcomes, and execution
+
+We keep design decisions, shared outcomes, and execution steps in separate records because they answer different questions.
 
 | Layer | Question | Record |
 | --- | --- | --- |
@@ -28,7 +30,7 @@ The extension loads that policy and the selected issue as context, restores issu
 | Epics and beads | What outcomes must we deliver? | Epics group related work. Beads record scope, acceptance criteria, dependencies, ownership, and progress. |
 | Agent execution | What steps do we take now? | Native harness plans, todos, tool calls, and subagent assignments. |
 
-The **coordinator** is the agent responsible for the whole outcome. It breaks agreed plans into epics and beads, then works directly or delegates to **helpers**. Each agent uses its harness's tools to execute the assigned work. The companion does not convert documents into issues automatically.
+The companion does not turn documents into issues or issues into todo lists. Those decisions need judgment about scope and ownership.
 
 For example:
 
@@ -36,38 +38,25 @@ For example:
 2. **Beads:** a reporting epic includes a bead for exporting filtered invoices, with acceptance criteria for permissions, filtering, and valid output.
 3. **Execution:** the agent uses native todos to inspect the query, implement the export, and verify those criteria.
 
-The issue that tracks the current outcome is the **governing bead**. It links to the relevant design documents and holds a high-level plan and recovery checkpoints. The detailed working todo list stays in the harness.
+The issue for the current outcome is the **governing bead**. It links to design documents and holds a high-level plan and recovery checkpoints. Detailed execution steps stay in the harness. Copying every todo transition into Beads would add bookkeeping without improving the handoff.
 
-The coordinator records verified results and blockers in Beads. If the work changes a design decision, it updates the source document and notes the change in the bead. There is no need to copy the full specification or every todo transition into each issue.
+### Native tools and memory
 
-Native sessions and memory can also persist. Beads provides the shared work record across sessions and agents; the harness manages the current run. `bd remember` stores project knowledge alongside that record without replacing design documents or harness memory.
+We chose to preserve the harness's plans, todos, delegation, and memory. Beads adds a shared work record across sessions and agents. It does not need to replace tools that already help an agent do the work.
 
-### When a bead or worktree helps
+Native sessions and memory can persist too. The distinction is their purpose, not whether they survive a session. Beads holds shared outcomes and project knowledge, while design documents retain the reasoning behind product and architecture decisions.
 
-A small, bounded edit or one-off investigation needs no new bead or worktree unless project rules require one. File count alone does not decide this.
+### Tracking and checkout isolation
 
-A bead helps when work spans sessions, has dependencies, or needs a recoverable plan or handoff. Larger multi-file agent runs usually benefit from that record. Reuse the governing bead when the work belongs to it. Create a separate bead when part of the work needs its own outcome, dependency, or owner.
+A bead is useful when work spans sessions, has dependencies, or needs a recoverable handoff. Requiring a new issue for every small edit would add little value. The policy leaves room for bounded work without a new bead, subject to project rules.
 
-Choose a worktree separately, when branch isolation or concurrent writers require it. A bead does not require a worktree. Direct work must still respect other writers and the project's checkout rules.
+Worktrees solve a different problem: branch isolation and concurrent writers. We do not tie worktree creation to issue creation. A bead records ownership, but it cannot stop two agents from changing the same checkout.
 
-## Complete work tracked in a bead
+### Completion based on acceptance
 
-A native todo records a step. A bead records whether the agreed outcome was delivered. Finished todos do not prove that a bead or its parent epic is complete.
+Finished todos show that execution steps ended. They do not prove that an issue's acceptance criteria were met. The coordinator is the agent responsible for the whole outcome. We keep verification and closure with that agent because helper reports and session events cannot establish acceptance on their own.
 
-The coordinator follows one procedure:
-
-1. Read the governing bead. Confirm ownership and acceptance criteria, then record the high-level plan.
-2. Execute with native plans and subagents. Record verified progress, blockers, and significant plan changes in Beads.
-3. Verify the integrated result against the acceptance criteria. Check for remaining work and agents that can still change the result.
-4. Record the final evidence. Close the bead through `bd` before reporting it complete.
-
-If acceptance is incomplete, leave the bead open with a checkpoint. If closure lacks authorization or fails, report the implementation result and the still-open bead separately.
-
-An assignment to complete a bead includes routine status updates and verified closure, unless user or repository instructions reserve those actions. Finishing the native plan does not create another approval step. Selecting an issue alone does not grant that authority.
-
-Helpers report to the coordinator. They do not close its bead when their own todos are finished. The extension does not auto-close issues: task counters and session events cannot prove acceptance.
-
-Git commits, pushes, Dolt synchronization, and publication require their own authorization. Closing a bead does not authorize them.
+The companion therefore does not auto-close issues. [PRIME.md](PRIME.md#native-commands-and-completion) defines the agent's verification and closure procedure, including incomplete work and failed or unauthorized closure. Closing a bead grants no authority to commit, push, synchronize remotely, or publish.
 
 ## Install the extension
 
@@ -172,15 +161,21 @@ Both hosts expose the same `/beads` command:
 
 ## Record recovery checkpoints
 
-Record the high-level plan in the governing bead before execution. Add a checkpoint after significant progress, plan changes, or blockers, and before a pause or handoff. Distinguish verified results from attempts and helper reports. On resume, compare the checkpoint with the checkout and running agents.
+A recovery checkpoint is a comment on the selected issue. It gives the next session the verified result, remaining work, and enough checkout and ownership context to resume.
 
-Use `/beads checkpoint` for an explicit user or automation request. The extension adds no model-callable write tools. An agent with shell permission uses `bd` directly:
+To add one from Pi or OMP, run:
+
+```text
+/beads checkpoint Verified: ... Remaining: ... Next: ... Checkouts and live writers: ...
+```
+
+The command writes the text you supply. It does not generate a summary or verify the result. The extension adds no model-callable write tools. With shell permission, an agent can use native `bd` instead:
 
 ```sh
 bd --sandbox comments add -- ISSUE_ID 'Verified: ... Remaining: ... Next: ... Checkouts and live writers: ...'
 ```
 
-For final evidence and closure, follow the [completion procedure](#complete-work-tracked-in-a-bead). Work without a governing bead needs no duplicate completion record.
+The [agent policy](PRIME.md#execution-and-recovery) defines when agents record checkpoints and how they resume work.
 
 ## Maintain the policy
 
