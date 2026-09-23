@@ -275,7 +275,7 @@ flowchart LR
     coordinator -->|"plan and delegate"| harness
     harness -->|"results, blockers, live writers"| coordinator
     coordinator -->|"plan + material checkpoints<br/>final evidence and verified closure"| beads
-    coordinator -.->|"when a separate CLI session helps"| herdr
+    coordinator -.->|"when the user asks for a separate full CLI session"| herdr
     herdr -.->|"worker results and lifecycle state"| coordinator
 ```
 
