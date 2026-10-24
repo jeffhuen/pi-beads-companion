@@ -144,7 +144,7 @@ This command keeps Beads' Git hooks. Add `--skip-hooks` only if you choose to om
 
 Setup requires the real project root and a local `.beads/metadata.json`. It does not search parent directories or follow worktree redirects. For a worktree with `.beads/redirect`, use `bd where --json` to find the owning checkout and run setup there.
 
-For an npm installation, replace `node /absolute/path/to/pi-beads-companion/dist/setup.js` in the commands below with `npx --package=pi-beads-companion@0.1.0 pi-beads-companion`. Use the version you installed. Both commands run the same setup tool.
+For an npm installation, replace `node /absolute/path/to/pi-beads-companion/dist/setup.js` in the commands below with `npx --package=pi-beads-companion@0.1.1 pi-beads-companion`. Use the version you installed. Both commands run the same setup tool.
 
 1. Read [PRIME.md](PRIME.md) and the [migration limits](#migration-and-safety-limits).
 2. Stop other writers in the target checkout.

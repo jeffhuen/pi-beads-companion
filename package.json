@@ -1,6 +1,6 @@
 {
   "name": "pi-beads-companion",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Native Beads context and recovery checkpoints for Pi and OMP, alongside official Herdr integrations.",
   "type": "module",
   "license": "MIT",
