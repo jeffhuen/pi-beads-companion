@@ -4,7 +4,7 @@
 
 ## Authority and division of responsibility
 
-Follow the user's instructions and the active repository and harness rules. An assignment to complete a bead includes routine status updates and verified closure, unless those instructions reserve the actions. Selecting an issue alone grants no authority. Respect tool permissions and read-only assignments. This workflow does not authorize Git commits, pushes, publication, or remote operations.
+Follow the user's instructions and the active repository and harness rules. An assignment to complete a bead includes routine status updates and verified closure, unless those instructions reserve the actions. Selecting an issue grants no authority and does not claim it. Respect tool permissions and read-only assignments. This workflow does not authorize Git commits, pushes, Dolt synchronization, publication, remote operations, or destructive cleanup; perform those only when the active instructions authorize them.
 
 Beads holds the durable work record: outcomes, acceptance criteria, dependencies, claims, high-level plans, decisions, and recovery checkpoints. The harness manages live execution through its native plans, todos, memory, tools, and subagents. Native session state can persist too; it does not replace the shared Beads record. Do not create a bead per todo or mirror every task event.
 
@@ -27,9 +27,9 @@ On resume, read the governing bead and its latest checkpoint. Compare them with 
 
 ## Coordinator and helpers
 
-The coordinator is the agent responsible for the whole outcome. Other agents are helpers. One coordinator owns bead updates, verification, closure, integration, and cleanup unless ownership transfers. Helpers report results and blockers. They must not claim or close the coordinator's bead on their own. Selecting an issue in the companion does not claim it.
+The coordinator is the agent responsible for the whole outcome. Other agents are helpers. One coordinator owns bead updates, verification, closure, integration, and cleanup unless ownership transfers. Helpers report results and blockers. They must not claim or close the coordinator's bead on their own.
 
-Work directly or use native delegation when it fits the task. Native OMP agents support model selection, supervision, and follow-up. For helper delegation, use Herdr only when the user asks for a separate full CLI session. Keep its official integration separate. This companion does not launch agents or manage terminals, worktrees, approvals, or session identities. The repository's execution workflow, such as `skill://herdr-workflow`, owns those procedures.
+Work directly or use native delegation when it fits the task. For helper delegation, use Herdr only when the user asks for a separate full CLI session. Keep its official integration separate. This companion does not launch agents or manage terminals, worktrees, approvals, or session identities. The repository's execution workflow, such as `skill://herdr-workflow`, owns those procedures.
 
 Give each helper one automated supervisor. Give each checkout and terminal one owner responsible for its use and cleanup. Confirm each writer's checkout. Isolate or serialize concurrent writers and integration. A terminal pane does not isolate files. Before cleanup, account for each helper's subagents and any process that can still write. If prompt delivery is unclear, inspect the session before retrying.
 
@@ -65,6 +65,4 @@ For work tracked in a bead, completion includes its final update. Finishing the 
 3. If acceptance is met and closure is authorized, record the final evidence. Close the bead through `bd` before reporting it complete.
 4. If closure is unauthorized or fails, report the verified implementation result and the still-open bead separately. Do not claim the bead is complete.
 
-Before a pause or handoff, record a checkpoint instead of closing unfinished work. Work without a governing bead needs no duplicate completion record.
-
-This procedure does not authorize Git commits, pushes, Dolt synchronization, publication, or destructive cleanup. Perform those actions only when the active instructions authorize them.
+Work without a governing bead needs no duplicate completion record.
