@@ -14,7 +14,7 @@ Choose worktrees separately when concurrent writers or branch isolation require 
 
 ## Execution and recovery
 
-For work tracked in a bead, read the governing bead before execution. Confirm ownership and acceptance criteria. Record a high-level plan that another session can resume, and keep detailed steps in the harness. Update the bead after significant progress, plan changes, or blockers, and before a pause or handoff. Do not record every tool call or todo transition.
+For work tracked in a bead, read the governing bead before execution. Confirm ownership and acceptance criteria. Record a high-level plan that another session can resume, and keep detailed steps in the harness. Update the bead after significant progress, plan changes, or blockers. Before a pause or handoff, record a recovery checkpoint and leave unfinished work open. Do not record every tool call or todo transition.
 
 A recovery checkpoint records:
 
