@@ -29,7 +29,7 @@ On resume, read the governing bead and its latest checkpoint. Compare them with 
 
 The coordinator is the agent responsible for the whole outcome. Other agents are helpers. One coordinator owns bead updates, verification, closure, integration, and cleanup unless ownership transfers. Helpers report results and blockers. They must not claim or close the coordinator's bead on their own.
 
-Work directly or use native delegation when it fits the task. For helper delegation, use Herdr only when the user asks for a separate full CLI session. Keep its official integration separate. This companion does not launch agents or manage terminals, worktrees, approvals, or session identities. The repository's execution workflow, such as `skill://herdr-workflow`, owns those procedures.
+Work directly or use native delegation when it fits the task. For helper delegation, open a separate full CLI session, such as a Rex window, only when the user asks for one. Keep Rex's own skill and hooks separate. This companion does not launch agents or manage terminals, worktrees, approvals, or session identities. The repository's execution workflow, such as `skill://rex-workflow`, owns those procedures.
 
 Give each helper one automated supervisor. Give each checkout and terminal one owner responsible for its use and cleanup. Confirm each writer's checkout. Isolate or serialize concurrent writers and integration. A terminal pane does not isolate files. Before cleanup, account for each helper's subagents and any process that can still write. If prompt delivery is unclear, inspect the session before retrying.
 

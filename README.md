@@ -110,7 +110,7 @@ omp install /absolute/path/to/pi-beads-companion
 OMP does not support `install -l`. Use its `-e` entrypoint above for a
 session-local load. The package declares separate native entrypoints for OMP and Pi.
 
-Use package registration or `-e`, not both. Reload or restart the host after registration. If you use Herdr, install its official integration separately.
+Use package registration or `-e`, not both. Reload or restart the host after registration. If you use Rex, install its skill and hooks separately with `rex skill setup`.
 
 ## Adopt the workflow in a project
 
@@ -268,18 +268,18 @@ flowchart LR
     companion["pi-beads-companion<br/>project policy and selected issue<br/>bounded recovery context"]
     coordinator["Coordinator<br/>owns bead updates<br/>integration, verification and closure"]
     harness["Native Pi or OMP<br/>plans, todos, memory<br/>tools and subagents"]
-    herdr["Official Herdr integration<br/>optional full CLI sessions<br/>terminals and worktrees"]
+    rex["Rex<br/>optional full CLI sessions<br/>windows and worktree actions"]
 
     beads -->|"bd prime + bd show"| companion
     companion -->|"context for work and resume"| coordinator
     coordinator -->|"plan and delegate"| harness
     harness -->|"results, blockers, live writers"| coordinator
     coordinator -->|"plan + material checkpoints<br/>final evidence and verified closure"| beads
-    coordinator -.->|"when the user asks for a separate full CLI session"| herdr
-    herdr -.->|"worker results and lifecycle state"| coordinator
+    coordinator -.->|"when the user asks for a separate full CLI session"| rex
+    rex -.->|"worker results and lifecycle state"| coordinator
 ```
 
-Native compaction and memory stay under the harness's control. Herdr remains a separate integration for full CLI sessions and worktree management.
+Native compaction and memory stay under the harness's control. Rex remains a separate integration for full CLI sessions and worktree management.
 
 ### Activation and session state
 

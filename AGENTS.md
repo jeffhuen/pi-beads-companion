@@ -1,6 +1,6 @@
 # pi-beads-companion
 
-This package connects native Pi and OMP sessions to Beads context and explicit recovery checkpoints. Keep the official Herdr integrations separate.
+This package connects native Pi and OMP sessions to Beads context and explicit recovery checkpoints. Keep Rex's own skill and hooks separate.
 
 ## Boundaries
 
@@ -16,12 +16,12 @@ Run `npm ci`, `npm run check`, and `npm test`. Package verification uses `npm pa
 
 Use `bd` directly for durable work. Record the execution outline before nontrivial changes and checkpoint verified progress, remaining work, and live resources. Do not claim a helper's completion proves acceptance.
 
-Use the configured Codebase Memory tools for structural discovery and verify their coverage. Native source remains authoritative when the index is incomplete. Herdr-managed resource procedures live in `skill://herdr-workflow`; this package does not own those resources.
+Use the configured Codebase Memory tools for structural discovery and verify their coverage. Native source remains authoritative when the index is incomplete. Rex-managed resource procedures (sessions, windows, worktrees) live in `skill://rex-workflow`; this package does not own those resources.
 
 Do not push, publish, or install globally without authorization.
 
 <!-- BEGIN PI-BEADS-COMPANION -->
 ## Beads companion
 
-Use native harness plans, todos, memory, and subagents for execution. Beads holds durable outcomes, acceptance criteria, high-level plans, and recovery checkpoints, not every execution step. Small bounded work needs no new bead unless project rules require one. Choose worktrees separately for writer or branch isolation. Read the project workflow with `bd prime`. One coordinator owns bead updates and closure unless ownership transfers explicitly. For assigned bead-scoped work, verify acceptance, record final evidence, and close the bead within your authority before reporting it complete. Completed todos alone do not prove acceptance. Helpers report back; lifecycle events do not close issues. Keep official Herdr integrations separate.
+Use native harness plans, todos, memory, and subagents for execution. Beads holds durable outcomes, acceptance criteria, high-level plans, and recovery checkpoints, not every execution step. Small bounded work needs no new bead unless project rules require one. Choose worktrees separately for writer or branch isolation. Read the project workflow with `bd prime`. One coordinator owns bead updates and closure unless ownership transfers explicitly. For assigned bead-scoped work, verify acceptance, record final evidence, and close the bead within your authority before reporting it complete. Completed todos alone do not prove acceptance. Helpers report back; lifecycle events do not close issues. Keep Rex's own skill and hooks separate.
 <!-- END PI-BEADS-COMPANION -->
